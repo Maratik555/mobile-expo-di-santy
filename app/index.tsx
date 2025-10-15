@@ -13,10 +13,13 @@ export default function SplashScreen() {
 
   // Анимация для квадрата
   const squareTranslateX = useRef(new Animated.Value(-400)).current;
+  const squareRotate = useRef(new Animated.Value(0)).current;
 
   // Анимации для текста
   const diTranslateX = useRef(new Animated.Value(-400)).current;
+  const diOpacity = useRef(new Animated.Value(0)).current;
   const santiTranslateX = useRef(new Animated.Value(400)).current;
+  const santiOpacity = useRef(new Animated.Value(0)).current;
 
   const handleStartPress = () => {
     if (animationStarted) return;
@@ -36,32 +39,53 @@ export default function SplashScreen() {
       }),
     ]).start();
 
-    // Квадрат медленно выкатывается слева
+    // Квадрат медленно перекатывается слева
     setTimeout(() => {
-      Animated.timing(squareTranslateX, {
-        toValue: 0,
-        duration: 1000,
-        useNativeDriver: true,
-      }).start();
+      Animated.parallel([
+        Animated.timing(squareTranslateX, {
+          toValue: 0,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(squareRotate, {
+          toValue: 4,
+          duration: 1200,
+          useNativeDriver: true,
+        }),
+      ]).start();
     }, 300);
 
     // Текст "Ди" залетает слева внутрь квадрата
     setTimeout(() => {
-      Animated.timing(diTranslateX, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }).start();
-    }, 1300);
+      Animated.parallel([
+        Animated.timing(diTranslateX, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(diOpacity, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 1500);
 
     // Текст "санти" вылетает справа внутрь квадрата
     setTimeout(() => {
-      Animated.timing(santiTranslateX, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }).start();
-    }, 1800);
+      Animated.parallel([
+        Animated.timing(santiTranslateX, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(santiOpacity, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 2000);
 
     // Переход на следующий экран
     setTimeout(() => {
@@ -79,7 +103,15 @@ export default function SplashScreen() {
             style={[
               styles.square,
               {
-                transform: [{ translateX: squareTranslateX }],
+                transform: [
+                  { translateX: squareTranslateX },
+                  {
+                    rotate: squareRotate.interpolate({
+                      inputRange: [0, 4],
+                      outputRange: ['0deg', '360deg'],
+                    })
+                  },
+                ],
               },
             ]}
           >
@@ -88,6 +120,7 @@ export default function SplashScreen() {
                 styles.textContainer,
                 {
                   transform: [{ translateX: diTranslateX }],
+                  opacity: diOpacity,
                 },
               ]}
             >
@@ -99,6 +132,7 @@ export default function SplashScreen() {
                 styles.textContainer,
                 {
                   transform: [{ translateX: santiTranslateX }],
+                  opacity: santiOpacity,
                 },
               ]}
             >
