@@ -39,21 +39,21 @@ export default function SplashScreen() {
       }),
     ]).start();
 
-    // Квадрат медленно перекатывается слева
+    // Квадрат начинает перекатывается слева
     setTimeout(() => {
       Animated.parallel([
         Animated.timing(squareTranslateX, {
           toValue: 0,
-          duration: 1200,
+          duration: 1500,
           useNativeDriver: true,
         }),
         Animated.timing(squareRotate, {
           toValue: 4,
-          duration: 1200,
+          duration: 1500,
           useNativeDriver: true,
         }),
       ]).start();
-    }, 300);
+    }, 200);
 
     // Текст "Ди" залетает слева внутрь квадрата
     setTimeout(() => {
@@ -89,8 +89,8 @@ export default function SplashScreen() {
 
     // Переход на следующий экран
     setTimeout(() => {
-      router.push('/catalog');
-    }, 3500);
+      router.push('/catalog'); // пока сразу на каталог, потом изменим на экран входа / регистрации
+    }, 3200);
   };
 
   return (
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   square: {
     width: 193,
     height: 193,
-    borderWidth: 3,
+    borderWidth: 8,
     borderColor: '#2AB2DB',
     backgroundColor: 'transparent',
     justifyContent: 'center',
