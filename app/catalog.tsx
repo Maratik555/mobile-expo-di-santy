@@ -152,7 +152,10 @@ export default function CatalogScreen() {
 </Svg></Text>
             </Pressable>
           ) : (
-            <Pressable style={styles.scanButton}>
+            <Pressable 
+              style={styles.scanButton}
+              onPress={() => router.push('/scanner')}
+            >
               <Text style={styles.scanIcon}><Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
 <Path d="M8 3H6C4.58579 3 3.87868 3 3.43934 3.43934C3 3.87868 3 4.58579 3 6V8" stroke="#10366A" strokeWidth="1.25" strokeLinecap="round"/>
 <Path d="M8 21H6C4.58579 21 3.87868 21 3.43934 20.5607C3 20.1213 3 19.4142 3 18V16" stroke="#10366A" strokeWidth="1.25" strokeLinecap="round"/>
@@ -242,11 +245,13 @@ export default function CatalogScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Сортировка по цене</Text>
               <Pressable 
+                style={styles.closeButton}
                 onPress={() => setSortModalVisible(false)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Text><Svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                <Svg width="9" height="9" viewBox="0 0 9 9" fill="none">
 <Path d="M7.54594 7.54624L5.95495 5.95525L4.36396 4.36426L2.77297 2.77327L1.18198 1.18228M1.18198 7.54624L7.54594 1.18228" stroke="#10366A" strokeWidth="2" strokeLinecap="round"/>
-</Svg></Text>
+</Svg>
               </Pressable>
             </View>
 
@@ -528,6 +533,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#1E3A5F',
+  },
+  closeButton: {
+    padding: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   closeButtonText: {
     fontSize: 24,
