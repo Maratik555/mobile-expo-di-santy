@@ -102,8 +102,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   square: {
-    width: 100,
-    height: 100,
+    width: 193,
+    height: 193,
     borderWidth: 3,
     borderColor: '#2AB2DB',
     backgroundColor: 'transparent',
@@ -113,13 +113,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoTextTop: {
-    fontSize: 32,
+    fontSize: 62,
     fontWeight: 'bold',
     color: '#404040',
     textAlign: 'center',
   },
   logoTextBottom: {
-    fontSize: 24,
+    fontSize: 42,
     fontWeight: '700',
     color: '#404040',
     textAlign: 'center',
