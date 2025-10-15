@@ -1,8 +1,9 @@
-import { View, Text, StyleSheet, FlatList, Pressable, TextInput, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, TextInput, Image, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import Svg, { Path } from 'react-native-svg';
 import { typography } from '../src/styles/typography';
+import { useState } from 'react';
 
 interface Product {
   id: string;
@@ -24,27 +25,62 @@ const PRODUCTS: Product[] = [
     id: '2',
     name: 'DLA6-FW-304',
     category: 'Умывальник',
-    price: 3250,
-    stock: 2,
+    price: 4500,
+    stock: 5,
   },
   {
     id: '3',
     name: 'DLA6-FW-304',
     category: 'Умывальник',
-    price: 3250,
-    stock: 2,
+    price: 2800,
+    stock: 1,
   },
   {
     id: '4',
     name: 'DLA6-FW-304',
     category: 'Умывальник',
-    price: 3250,
-    stock: 2,
+    price: 3900,
+    stock: 3,
+  },
+  {
+    id: '5',
+    name: 'DLA6-FW-304',
+    category: 'Умывальник',
+    price: 4200,
+    stock: 4,
+  },
+  {
+    id: '6',
+    name: 'DLA6-FW-304',
+    category: 'Умывальник',
+    price: 4500,
+    stock: 6,
   },
 ];
 
+type SortType = 'cheap' | 'expensive' | null;
+
 export default function CatalogScreen() {
   const router = useRouter();
+  const [sortModalVisible, setSortModalVisible] = useState(false);
+  const [selectedSort, setSelectedSort] = useState<SortType>(null);
+  const [appliedSort, setAppliedSort] = useState<SortType>(null);
+  const [filterButtonActive, setFilterButtonActive] = useState(false);
+
+  const getSortedProducts = () => {
+    const sorted = [...PRODUCTS];
+    if (appliedSort === 'cheap') {
+      return sorted.sort((a, b) => a.price - b.price);
+    } else if (appliedSort === 'expensive') {
+      return sorted.sort((a, b) => b.price - a.price);
+    }
+    return sorted;
+  };
+
+  const handleApplySort = () => {
+    setAppliedSort(selectedSort);
+    setSortModalVisible(false);
+  };
 
   const renderProduct = ({ item }: { item: Product }) => (
     <Pressable 
@@ -86,25 +122,51 @@ export default function CatalogScreen() {
           <TextInput
             style={styles.searchInput}
             placeholder="Поиск товаров"
-            placeholderTextColor="#8C9DB5"
+            placeholderTextColor="#10366A"
           />
           <Pressable style={styles.scanButton}>
             <Text style={styles.scanIcon}>⊞</Text>
           </Pressable>
         </View>
-
+      </View>
         <View style={styles.filterRow}>
-          <Pressable style={styles.filterButton}>
-            <Text style={styles.filterButtonText}>Сортировка по цене</Text>
+          <Pressable 
+            style={[
+              styles.filterButton, 
+              appliedSort && styles.sortButton,
+              sortModalVisible && styles.activeFilterButton
+            ]}
+            onPress={() => {
+              setSelectedSort(appliedSort);
+              setSortModalVisible(true);
+            }}
+          >
+            <Text style={[
+              styles.filterButtonText, 
+              appliedSort && styles.sortButtonText,
+              sortModalVisible && styles.activeFilterButtonText
+            ]}>Сортировка по цене</Text>
           </Pressable>
-          <Pressable style={styles.filterButton}>
-            <Text style={styles.filterButtonText}>Фильтры</Text>
+          <Pressable 
+            style={[
+              styles.filterButton,
+              filterButtonActive && styles.activeFilterButton
+            ]}
+            onPress={() => {
+              setFilterButtonActive(!filterButtonActive);
+              // Здесь будет логика для фильтров
+            }}
+          >
+            <Text style={[
+              styles.filterButtonText,
+              filterButtonActive && styles.activeFilterButtonText
+            ]}>Фильтры</Text>
           </Pressable>
         </View>
-      </View>
+      
 
       <FlatList
-        data={PRODUCTS}
+        data={getSortedProducts()}
         renderItem={renderProduct}
         keyExtractor={(item) => item.id}
         numColumns={2}
@@ -112,6 +174,54 @@ export default function CatalogScreen() {
         showsVerticalScrollIndicator={false}
         columnWrapperStyle={styles.row}
       />
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={sortModalVisible}
+        onRequestClose={() => setSortModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Сортировка по цене</Text>
+              <Pressable 
+                onPress={() => setSortModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </Pressable>
+            </View>
+
+            <Pressable 
+              style={styles.radioOption}
+              onPress={() => setSelectedSort('cheap')}
+            >
+              <View style={styles.radioButton}>
+                {selectedSort === 'cheap' && <View style={styles.radioButtonInner} />}
+              </View>
+              <Text style={styles.radioText}>Сначала дешевые</Text>
+            </Pressable>
+
+            <Pressable 
+              style={styles.radioOption}
+              onPress={() => setSelectedSort('expensive')}
+            >
+              <View style={styles.radioButton}>
+                {selectedSort === 'expensive' && <View style={styles.radioButtonInner} />}
+              </View>
+              <Text style={styles.radioText}>Сначала дорогие</Text>
+            </Pressable>
+
+            <Pressable 
+              style={styles.applyButton}
+              onPress={handleApplySort}
+            >
+              <Text style={styles.applyButtonText}>Применить</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
 
       <View style={styles.bottomNav}>
         <Pressable style={styles.navButton}>
@@ -131,32 +241,33 @@ export default function CatalogScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
+    backgroundColor: '#FFF',
   },
   productImage: {
     width: '100%',
     height: '100%',
   },
   header: {
-    paddingTop: 50,
+    paddingTop: 65,
     paddingHorizontal: 20,
     paddingBottom: 15,
-    backgroundColor: '#2B4B7C',
+    borderRadius: 20,
+    backgroundColor: '#10366A',
   },
   headerTitle: {
     ...typography.heading1,
-    color: '#FFFFFF',
+    color: '#FFF',
     marginBottom: 15,
     textAlign: 'center',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FFF',
     borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    marginBottom: 15,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginBottom: 5,
   },
   searchIcon: {
     fontSize: 20,
@@ -175,54 +286,72 @@ const styles = StyleSheet.create({
     color: '#2B4B7C',
   },
   filterRow: {
+    marginTop: 15,
+    paddingHorizontal: 15,
+    paddingBottom: 15,
     flexDirection: 'row',
-    gap: 10,
+    gap: 15,
   },
   filterButton: {
     flex: 1,
-    backgroundColor: '#E8EEF7',
+    backgroundColor: '#E2E9FE',
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: 'center',
   },
+  sortButton: {
+    backgroundColor: '#E2E9FE',
+  },
   filterButtonText: {
     ...typography.text2,
-    color: '#2B4B7C',
+    color: '#13356C',
+  },
+  sortButtonText: {
+    color: '#13356C',
+  },
+  activeFilterButton: {
+    backgroundColor: '#10366A',
+  },
+  activeFilterButtonText: {
+    color: '#FFFFFF',
   },
   addButtonText: {
     fontSize: 40,
-    color: '#FFFFFF',
+    color: '#FFF',
     margin: 0
   },
   list: {
-    padding: 15,
+    paddingHorizontal: 15,
     paddingBottom: 100,
   },
   row: {
     justifyContent: 'space-between',
   },
   productCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#E2EDFE',
     borderRadius: 15,
     marginBottom: 15,
     width: '48%',
     overflow: 'hidden',
+    padding: 8,
   },
   productImageContainer: {
     width: '100%',
     aspectRatio: 1,
-    backgroundColor: '#F0F4F8',
+    backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 10,
+    marginBottom: 8,
   },
   productImagePlaceholder: {
     width: '80%',
     height: '80%',
-    backgroundColor: '#E0E7F0',
+    backgroundColor: '#E2EDFE',
   },
   productInfo: {
-    padding: 12,
-    backgroundColor: '#E8EEF7',
+    paddingHorizontal: 4,
+    paddingBottom: 4,
   },
   category: {
     ...typography.heading2,
@@ -248,7 +377,7 @@ const styles = StyleSheet.create({
   },
   stock: {
     fontSize: 11,
-    color: '#8C9DB5',
+    color: '#8C8C8C',
   },
   addButton: {
     width: 28,
@@ -261,24 +390,95 @@ const styles = StyleSheet.create({
   },
   bottomNav: {
     position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
+    bottom: 30,
+    left: 80,
+    right: 80,
     flexDirection: 'row',
-    backgroundColor: '#2B4B7C',
-    borderRadius: 25,
-    paddingVertical: 15,
-    justifyContent: 'space-around',
+    gap: 25,
+    backgroundColor: '#10366A',
+    borderRadius: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+
   },
   navButton: {
     alignItems: 'center',
+    padding: 8,
   },
   navIcon: {
+    fontSize: 28,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 25,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1E3A5F',
+  },
+  closeButton: {
+    padding: 5,
+  },
+  closeButtonText: {
     fontSize: 24,
+    color: '#10366A',
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+  },
+  radioButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#1E3A5F',
+    marginRight: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioButtonInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#1E3A5F',
+  },
+  radioText: {
+    fontSize: 16,
+    color: '#1E3A5F',
+  },
+  applyButton: {
+    backgroundColor: '#F97C00',
+    borderRadius: 10,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  applyButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFF',
   },
 });
