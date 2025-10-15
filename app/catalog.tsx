@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, Pressable, TextInput, Image, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Line } from 'react-native-svg';
 import { typography } from '../src/styles/typography';
 import { useState } from 'react';
 
@@ -66,15 +66,31 @@ export default function CatalogScreen() {
   const [selectedSort, setSelectedSort] = useState<SortType>(null);
   const [appliedSort, setAppliedSort] = useState<SortType>(null);
   const [filterButtonActive, setFilterButtonActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const getSortedProducts = () => {
-    const sorted = [...PRODUCTS];
-    if (appliedSort === 'cheap') {
-      return sorted.sort((a, b) => a.price - b.price);
-    } else if (appliedSort === 'expensive') {
-      return sorted.sort((a, b) => b.price - a.price);
+  const getFilteredAndSortedProducts = () => {
+    let filtered = [...PRODUCTS];
+    
+    // Фильтрация по поисковому запросу
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(product => 
+        product.category.toLowerCase().includes(query) ||
+        product.name.toLowerCase().includes(query)
+      );
     }
-    return sorted;
+    
+    // Сортировка
+    if (appliedSort === 'cheap') {
+      return filtered.sort((a, b) => a.price - b.price);
+    } else if (appliedSort === 'expensive') {
+      return filtered.sort((a, b) => b.price - a.price);
+    }
+    return filtered;
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
   };
 
   const handleApplySort = () => {
@@ -118,15 +134,34 @@ export default function CatalogScreen() {
         <Text style={styles.headerTitle}>Каталог</Text>
         
         <View style={styles.searchContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Text style={styles.searchIcon}><Svg width="21" height="20" viewBox="0 0 21 20" fill="none">
+<Path d="M10.0271 17.4998C14.5038 17.4998 18.1328 13.9554 18.1328 9.58317C18.1328 5.21092 14.5038 1.6665 10.0271 1.6665C5.55044 1.6665 1.92139 5.21092 1.92139 9.58317C1.92139 13.9554 5.55044 17.4998 10.0271 17.4998Z" stroke="#0E376C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+<Path d="M18.986 18.3332L17.2795 16.6665" stroke="#0E376C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+</Svg></Text>
           <TextInput
             style={styles.searchInput}
             placeholder="Поиск товаров"
             placeholderTextColor="#10366A"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
           />
-          <Pressable style={styles.scanButton}>
-            <Text style={styles.scanIcon}>⊞</Text>
-          </Pressable>
+          {searchQuery.trim() ? (
+            <Pressable style={styles.scanButton} onPress={handleClearSearch}>
+              <Text><Svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+<Path d="M7.54594 7.54624L5.95495 5.95525L4.36396 4.36426L2.77297 2.77327L1.18198 1.18228M1.18198 7.54624L7.54594 1.18228" stroke="#10366A" strokeWidth="2" strokeLinecap="round"/>
+</Svg></Text>
+            </Pressable>
+          ) : (
+            <Pressable style={styles.scanButton}>
+              <Text style={styles.scanIcon}><Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+<Path d="M8 3H6C4.58579 3 3.87868 3 3.43934 3.43934C3 3.87868 3 4.58579 3 6V8" stroke="#10366A" strokeWidth="1.25" strokeLinecap="round"/>
+<Path d="M8 21H6C4.58579 21 3.87868 21 3.43934 20.5607C3 20.1213 3 19.4142 3 18V16" stroke="#10366A" strokeWidth="1.25" strokeLinecap="round"/>
+<Path d="M16 3H18C19.4142 3 20.1213 3 20.5607 3.43934C21 3.87868 21 4.58579 21 6V8" stroke="#10366A" strokeWidth="1.25" strokeLinecap="round"/>
+<Path d="M16 21H18C19.4142 21 20.1213 21 20.5607 20.5607C21 20.1213 21 19.4142 21 18V16" stroke="#10366A" strokeWidth="1.25" strokeLinecap="round"/>
+<Line x1="3.625" y1="12.375" x2="20.375" y2="12.375" stroke="#10366A" strokeWidth="1.25" strokeLinecap="round"/>
+</Svg></Text>
+            </Pressable>
+          )}
         </View>
       </View>
         <View style={styles.filterRow}>
@@ -165,15 +200,36 @@ export default function CatalogScreen() {
         </View>
       
 
-      <FlatList
-        data={getSortedProducts()}
-        renderItem={renderProduct}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-        columnWrapperStyle={styles.row}
-      />
+      {getFilteredAndSortedProducts().length > 0 ? (
+        <>
+          {searchQuery.trim() && (
+            <View style={styles.searchResultsHeader}>
+              <Text style={styles.searchResultsText}>Вот что мы нашли:</Text>
+            </View>
+          )}
+          <FlatList
+            data={getFilteredAndSortedProducts()}
+            renderItem={renderProduct}
+            keyExtractor={(item) => item.id}
+            numColumns={2}
+            contentContainerStyle={styles.list}
+            showsVerticalScrollIndicator={false}
+            columnWrapperStyle={styles.row}
+          />
+        </>
+      ) : (
+        <View style={styles.emptyState}>
+          <View style={styles.emptyIconContainer}>
+            <Svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+<Path d="M12 15.6001H18.6667" stroke="#10366A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+<Path d="M15.3334 27.9998C22.329 27.9998 28.0001 22.3288 28.0001 15.3332C28.0001 8.33756 22.329 2.6665 15.3334 2.6665C8.33781 2.6665 2.66675 8.33756 2.66675 15.3332C2.66675 22.3288 8.33781 27.9998 15.3334 27.9998Z" stroke="#10366A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+<Path d="M29.3334 29.3332L26.6667 26.6665" stroke="#10366A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+</Svg>
+          </View>
+          <Text style={styles.emptyTitle}>Ничего не нашлось</Text>
+          <Text style={styles.emptySubtitle}>Проверьте, правильно ли введен запрос</Text>
+        </View>
+      )}
 
       <Modal
         animationType="slide"
@@ -187,9 +243,10 @@ export default function CatalogScreen() {
               <Text style={styles.modalTitle}>Сортировка по цене</Text>
               <Pressable 
                 onPress={() => setSortModalVisible(false)}
-                style={styles.closeButton}
               >
-                <Text style={styles.closeButtonText}>✕</Text>
+                <Text><Svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+<Path d="M7.54594 7.54624L5.95495 5.95525L4.36396 4.36426L2.77297 2.77327L1.18198 1.18228M1.18198 7.54624L7.54594 1.18228" stroke="#10366A" strokeWidth="2" strokeLinecap="round"/>
+</Svg></Text>
               </Pressable>
             </View>
 
@@ -225,13 +282,19 @@ export default function CatalogScreen() {
 
       <View style={styles.bottomNav}>
         <Pressable style={styles.navButton}>
-          <Text style={styles.navIcon}>📚</Text>
+          <Text><Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+<Path d="M12 9.7998V19.9998M12 9.7998C12 8.11965 12 7.27992 12.327 6.63818C12.6146 6.0737 13.0732 5.6146 13.6377 5.32698C14.2794 5 15.1196 5 16.7998 5H19.3998C19.9599 5 20.2401 5 20.454 5.10899C20.6422 5.20487 20.7948 5.35774 20.8906 5.5459C20.9996 5.75981 21 6.04004 21 6.6001V15.4001C21 15.9601 20.9996 16.2398 20.8906 16.4537C20.7948 16.6419 20.6425 16.7952 20.4543 16.8911C20.2406 17 19.961 17 19.402 17H16.5693C15.6301 17 15.1597 17 14.7334 17.1295C14.356 17.2441 14.0057 17.4317 13.701 17.6821C13.3568 17.965 13.096 18.3557 12.575 19.1372L12 19.9998M12 9.7998C12 8.11965 11.9998 7.27992 11.6729 6.63818C11.3852 6.0737 10.9263 5.6146 10.3618 5.32698C9.72004 5 8.87977 5 7.19961 5H4.59961C4.03956 5 3.75981 5 3.5459 5.10899C3.35774 5.20487 3.20487 5.35774 3.10899 5.5459C3 5.75981 3 6.04004 3 6.6001V15.4001C3 15.9601 3 16.2398 3.10899 16.4537C3.20487 16.6419 3.35774 16.7952 3.5459 16.8911C3.7596 17 4.03901 17 4.59797 17H7.43073C8.36994 17 8.83942 17 9.26569 17.1295C9.64306 17.2441 9.99512 17.4317 10.2998 17.6821C10.6426 17.9638 10.9017 18.3526 11.4185 19.1277L12 19.9998" stroke="#2AB2DB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+</Svg></Text>
         </Pressable>
         <Pressable style={styles.navButton}>
-          <Text style={styles.navIcon}>🛒</Text>
+          <Text><Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+<Path d="M3 3H3.26835C3.74213 3 3.97943 3 4.17267 3.08548C4.34304 3.16084 4.48871 3.28218 4.59375 3.43604C4.71269 3.61026 4.75564 3.8429 4.84137 4.30727L7.00004 16L17.4218 16C17.875 16 18.1023 16 18.29 15.9199C18.4559 15.8492 18.5989 15.7346 18.7051 15.5889C18.8252 15.4242 18.8761 15.2037 18.9777 14.7631L18.9785 14.76L20.5477 7.95996L20.5481 7.95854C20.7023 7.29016 20.7796 6.95515 20.6947 6.69238C20.6202 6.46182 20.4635 6.26634 20.2556 6.14192C20.0184 6 19.6758 6 18.9887 6H5.5M18 21C17.4477 21 17 20.5523 17 20C17 19.4477 17.4477 19 18 19C18.5523 19 19 19.4477 19 20C19 20.5523 18.5523 21 18 21ZM8 21C7.44772 21 7 20.5523 7 20C7 19.4477 7.44772 19 8 19C8.55228 19 9 19.4477 9 20C9 20.5523 8.55228 21 8 21Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+</Svg></Text>
         </Pressable>
         <Pressable style={styles.navButton}>
-          <Text style={styles.navIcon}>👤</Text>
+          <Text ><Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+<Path d="M20 21C20 18.2386 16.4183 16 12 16C7.58172 16 4 18.2386 4 21M12 13C9.23858 13 7 10.7614 7 8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8C17 10.7614 14.7614 13 12 13Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+</Svg></Text>
         </Pressable>
       </View>
     </View>
@@ -276,7 +339,9 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
+    marginBlock: 5,
     fontSize: 16,
+    lineHeight: 20,
     color: '#2C2C2C',
   },
   scanButton: {
@@ -285,6 +350,35 @@ const styles = StyleSheet.create({
   scanIcon: {
     fontSize: 24,
     color: '#2B4B7C',
+  },
+  searchResultsHeader: {
+    paddingHorizontal: 20,
+    paddingBottom: 15,
+  },
+  searchResultsText: {
+    ...typography.heading3,
+    color: '#8C8C8C',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    paddingBottom: 200,
+  },
+  emptyIconContainer: {
+    marginBottom: 10,
+  },
+  emptyTitle: {
+    ...typography.heading1,
+    color: '#10366A',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  emptySubtitle: {
+    ...typography.heading2,
+    color: '#6B83A4',
+    textAlign: 'center',
   },
   filterRow: {
     marginTop: 15,
@@ -398,7 +492,7 @@ const styles = StyleSheet.create({
     gap: 25,
     backgroundColor: '#10366A',
     borderRadius: 20,
-    paddingVertical: 12,
+    paddingVertical: 20,
     paddingHorizontal: 30,
     justifyContent: 'center',
     shadowColor: '#000',
@@ -411,9 +505,6 @@ const styles = StyleSheet.create({
   navButton: {
     alignItems: 'center',
     padding: 8,
-  },
-  navIcon: {
-    fontSize: 28,
   },
   modalOverlay: {
     flex: 1,
@@ -437,9 +528,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#1E3A5F',
-  },
-  closeButton: {
-    padding: 5,
   },
   closeButtonText: {
     fontSize: 24,

@@ -3,6 +3,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { typography } from '../src/styles/typography';
+import Svg, { Path } from 'react-native-svg';
 
 export default function ProductScreen() {
   const router = useRouter();
@@ -41,7 +42,9 @@ export default function ProductScreen() {
             style={styles.closeButton}
             onPress={() => router.back()}
           >
-            <Text style={styles.closeButtonText}>✕</Text>
+            <Text style={styles.closeButtonText}><Svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+<Path d="M7.54594 7.54624L5.95495 5.95525L4.36396 4.36426L2.77297 2.77327L1.18198 1.18228M1.18198 7.54624L7.54594 1.18228" stroke="#10366A" strokeWidth="2" strokeLinecap="round"/>
+</Svg></Text>
           </Pressable>
         </View>
 
@@ -68,6 +71,7 @@ export default function ProductScreen() {
             
           </Pressable>
 
+         {/* Выбор цвета на будущее вдруг */}
           {/* {isColorOpen && (
             <View style={styles.colorOptions}>
               {colors.map((color) => (
@@ -99,7 +103,11 @@ export default function ProductScreen() {
               onPress={() => setIsDescriptionOpen(!isDescriptionOpen)}
             >
               <Text style={styles.collapsibleTitle}>Описание</Text>
-              <Text style={styles.chevron}>{isDescriptionOpen ? '▲' : '▼'}</Text>
+              <Text style={styles.chevron}>{isDescriptionOpen ? <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+<Path d="M8 14L12 10L16 14" stroke="#10366A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+</Svg> : <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+<Path d="M16 10L12 14L8 10" stroke="#10366A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+</Svg>}</Text>
             </Pressable>
             
             {isDescriptionOpen && (
@@ -116,7 +124,11 @@ export default function ProductScreen() {
               onPress={() => setIsCharacteristicsOpen(!isCharacteristicsOpen)}
             >
               <Text style={styles.collapsibleTitle}>Характеристики</Text>
-              <Text style={styles.chevron}>{isCharacteristicsOpen ? '▲' : '▼'}</Text>
+              <Text style={styles.chevron}>{isCharacteristicsOpen ? <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+<Path d="M8 14L12 10L16 14" stroke="#10366A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+</Svg> : <Svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+<Path d="M16 10L12 14L8 10" stroke="#10366A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+</Svg>}</Text>
             </Pressable>
             
             {isCharacteristicsOpen && (
@@ -221,6 +233,9 @@ const styles = StyleSheet.create({
   productName: {
     ...typography.text2,
     color: '#10366A',
+    lineHeight: 20,
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   price: {
     ...typography.price,
@@ -261,18 +276,18 @@ const styles = StyleSheet.create({
   //   borderWidth: 1,
   //   borderColor: '#CBD5E1',
   // },
-  selectedColorOption: {
-    backgroundColor: '#E8EEF7',
-    borderColor: '#10366A',
-  },
-  colorOptionText: {
-    fontSize: 14,
-    color: '#4B5563',
-  },
-  selectedColorOptionText: {
-    color: '#10366A',
-    fontWeight: '600',
-  },
+  // selectedColorOption: {
+  //   backgroundColor: '#E8EEF7',
+  //   borderColor: '#10366A',
+  // },
+  // colorOptionText: {
+  //   fontSize: 14,
+  //   color: '#4B5563',
+  // },
+  // selectedColorOptionText: {
+  //   color: '#10366A',
+  //   fontWeight: 'bold',
+  // },
   collapsibleSection: {
     marginBottom: 20,
     // borderBottomWidth: 1,
