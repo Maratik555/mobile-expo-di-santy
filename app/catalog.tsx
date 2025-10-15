@@ -251,12 +251,8 @@ const styles = StyleSheet.create({
     paddingTop: 65,
     paddingHorizontal: 20,
     paddingBottom: 15,
-<<<<<<< HEAD
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-=======
-    borderRadius: 20,
->>>>>>> origin/main
     backgroundColor: '#10366A',
   },
   headerTitle: {
