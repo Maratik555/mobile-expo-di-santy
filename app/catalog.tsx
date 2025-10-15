@@ -251,7 +251,8 @@ const styles = StyleSheet.create({
     paddingTop: 65,
     paddingHorizontal: 20,
     paddingBottom: 15,
-    borderRadius: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
     backgroundColor: '#10366A',
   },
   headerTitle: {

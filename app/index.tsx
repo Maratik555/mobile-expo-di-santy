@@ -5,85 +5,159 @@ import { useEffect, useRef, useState } from 'react';
 
 export default function SplashScreen() {
   const router = useRouter();
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
-  const [showLogo, setShowLogo] = useState(false);
+  const [animationStarted, setAnimationStarted] = useState(false);
 
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.parallel([
-          Animated.timing(rotateAnim, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(scaleAnim, {
-            toValue: 0.8,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-        ]),
-        Animated.parallel([
-          Animated.timing(rotateAnim, {
-            toValue: 0,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(scaleAnim, {
-            toValue: 1,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-        ]),
-      ])
-    ).start();
+  // Анимации для кнопки
+  const buttonTranslateY = useRef(new Animated.Value(0)).current;
+  const buttonOpacity = useRef(new Animated.Value(1)).current;
 
-    setTimeout(() => {
-      setShowLogo(true);
-      Animated.timing(opacityAnim, {
-        toValue: 1,
-        duration: 500,
+  // Анимация для квадрата
+  const squareTranslateX = useRef(new Animated.Value(-400)).current;
+  const squareRotate = useRef(new Animated.Value(0)).current;
+
+  // Анимации для текста
+  const diTranslateX = useRef(new Animated.Value(-400)).current;
+  const diOpacity = useRef(new Animated.Value(0)).current;
+  const santiTranslateX = useRef(new Animated.Value(400)).current;
+  const santiOpacity = useRef(new Animated.Value(0)).current;
+
+  const handleStartPress = () => {
+    if (animationStarted) return;
+    setAnimationStarted(true);
+
+    // Кнопка уходит вниз и исчезает
+    Animated.parallel([
+      Animated.timing(buttonTranslateY, {
+        toValue: 200,
+        duration: 600,
         useNativeDriver: true,
-      }).start();
-    }, 1500);
-  }, []);
+      }),
+      Animated.timing(buttonOpacity, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
 
-  const rotate = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '45deg'],
-  });
+    // Квадрат начинает перекатывается слева
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(squareTranslateX, {
+          toValue: 0,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(squareRotate, {
+          toValue: 4,
+          duration: 1500,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 200);
+
+    // Текст "Ди" залетает слева внутрь квадрата
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(diTranslateX, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(diOpacity, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 1500);
+
+    // Текст "санти" вылетает справа внутрь квадрата
+    setTimeout(() => {
+      Animated.parallel([
+        Animated.timing(santiTranslateX, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(santiOpacity, {
+          toValue: 1,
+          duration: 600,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }, 2000);
+
+    // Переход на следующий экран
+    setTimeout(() => {
+      router.push('/catalog'); // пока сразу на каталог, потом изменим на экран входа / регистрации
+    }, 3200);
+  };
 
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         <StatusBar style="dark" />
-        <Animated.View
-          style={[
-            styles.square,
-            {
-              transform: [{ rotate }, { scale: scaleAnim }],
-            },
-          ]}
-        />
-        
-        {showLogo && (
-          <Animated.View style={{ opacity: opacityAnim }}>
-            <View style={styles.logoContainer}>
-                <Text style={styles.logoTextTop}>Ди</Text>
-                <Text style={styles.logoTextBottom}>санти</Text>
-            </View>
+
+        <View style={styles.animationContainer}>
+          <Animated.View
+            style={[
+              styles.square,
+              {
+                transform: [
+                  { translateX: squareTranslateX },
+                  {
+                    rotate: squareRotate.interpolate({
+                      inputRange: [0, 4],
+                      outputRange: ['0deg', '360deg'],
+                    })
+                  },
+                ],
+              },
+            ]}
+          >
+            <Animated.View
+              style={[
+                styles.textContainer,
+                {
+                  transform: [{ translateX: diTranslateX }],
+                  opacity: diOpacity,
+                },
+              ]}
+            >
+              <Text style={styles.logoTextTop}>Ди</Text>
+            </Animated.View>
+
+            <Animated.View
+              style={[
+                styles.textContainer,
+                {
+                  transform: [{ translateX: santiTranslateX }],
+                  opacity: santiOpacity,
+                },
+              ]}
+            >
+              <Text style={styles.logoTextBottom}>санти</Text>
+            </Animated.View>
           </Animated.View>
-        )}
+        </View>
       </View>
 
-      <Pressable 
-        style={styles.button}
-        onPress={() => router.push('/catalog')}
+      <Animated.View
+        style={[
+          styles.buttonContainer,
+          {
+            transform: [{ translateY: buttonTranslateY }],
+            opacity: buttonOpacity,
+          },
+        ]}
       >
-        <Text style={styles.buttonText}>Начать</Text>
-      </Pressable>
+        <Pressable
+          style={styles.button}
+          onPress={handleStartPress}
+        >
+          <Text style={styles.buttonText}>Начать</Text>
+        </Pressable>
+      </Animated.View>
     </View>
   );
 }
@@ -93,43 +167,51 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     justifyContent: 'space-between',
-    paddingHorizontal: 40,
-    paddingBottom: 60,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  animationContainer: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   square: {
-    width: 100,
-    height: 100,
-    borderWidth: 3,
+    width: 193,
+    height: 193,
+    borderWidth: 8,
     borderColor: '#2AB2DB',
     backgroundColor: 'transparent',
-    marginBottom: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  logoContainer: {
+  textContainer: {
+    width: '100%',
     alignItems: 'center',
   },
   logoTextTop: {
-    fontSize: 32,
+    fontSize: 62,
     fontWeight: 'bold',
     color: '#404040',
     textAlign: 'center',
   },
   logoTextBottom: {
-    fontSize: 24,
+    fontSize: 42,
     fontWeight: '700',
     color: '#404040',
     textAlign: 'center',
+  },
+  buttonContainer: {
+    paddingHorizontal: 40,
+    paddingBottom: 60,
   },
   button: {
     backgroundColor: '#F97C00',
     borderRadius: 10,
     paddingVertical: 16,
     alignItems: 'center',
-    marginBottom: 25
   },
   buttonText: {
     fontSize: 16,
