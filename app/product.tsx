@@ -334,7 +334,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#E2EDFE',
     borderRadius: 10,
+<<<<<<< HEAD
     marginTop: 20,
+=======
+>>>>>>> origin/main
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
