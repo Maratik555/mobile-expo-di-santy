@@ -161,7 +161,7 @@ export default function ProductScreen() {
               style={styles.toastButton}
               onPress={() => {
                 setShowToast(false);
-                router.push('/catalog'); // пока на каталог, потом на корзину
+                router.push('/cart');
               }}
             >
               <Text style={styles.toastButtonText}>Перейти</Text>
