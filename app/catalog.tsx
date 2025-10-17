@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, Pressable, TextInput, Image, Modal } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, TextInput, Image, Modal, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import Svg, { Path, Line } from 'react-native-svg';
@@ -60,13 +60,55 @@ const PRODUCTS: Product[] = [
 
 type SortType = 'cheap' | 'expensive' | null;
 
+interface Filters {
+  brand: string[];
+  purpose: string[];
+  color: string[];
+}
+
+const BRANDS = ['Dionos', 'Trigor', 'Другое'];
+const PURPOSES = [
+  'Ванна короткая',
+  'Ванна длинная',
+  'Умывальник',
+  'Кухня длинная',
+  'Ванна высокая',
+  'Ванна средняя',
+  'Умывальник2',
+  'Кухня средняя'
+];
+const COLORS = [
+  'Черный матовый',
+  'Белый глянец',
+  'Бронза',
+  'Хром',
+  'Черный',
+  'Белый',
+  'Золотой',
+  'Серебристый'
+];
+
 export default function CatalogScreen() {
   const router = useRouter();
   const [sortModalVisible, setSortModalVisible] = useState(false);
   const [selectedSort, setSelectedSort] = useState<SortType>(null);
   const [appliedSort, setAppliedSort] = useState<SortType>(null);
-  const [filterButtonActive, setFilterButtonActive] = useState(false);
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Filter states
+  const [selectedFilters, setSelectedFilters] = useState<Filters>({
+    brand: [],
+    purpose: [],
+    color: [],
+  });
+  const [appliedFilters, setAppliedFilters] = useState<Filters>({
+    brand: [],
+    purpose: [],
+    color: [],
+  });
+  const [showAllPurposes, setShowAllPurposes] = useState(false);
+  const [showAllColors, setShowAllColors] = useState(false);
 
   const getFilteredAndSortedProducts = () => {
     let filtered = [...PRODUCTS];
@@ -98,6 +140,37 @@ export default function CatalogScreen() {
     setSortModalVisible(false);
   };
 
+  const toggleFilter = (category: keyof Filters, value: string) => {
+    setSelectedFilters(prev => {
+      const current = prev[category];
+      if (current.includes(value)) {
+        return {
+          ...prev,
+          [category]: current.filter(item => item !== value),
+        };
+      } else {
+        return {
+          ...prev,
+          [category]: [...current, value],
+        };
+      }
+    });
+  };
+
+  const handleApplyFilters = () => {
+    setAppliedFilters(selectedFilters);
+    setFilterModalVisible(false);
+  };
+
+  const hasActiveFilters = () => {
+    return appliedFilters.brand.length > 0 || 
+           appliedFilters.purpose.length > 0 || 
+           appliedFilters.color.length > 0;
+  };
+
+  const a = 'Посмотреть все назначения'
+  const b = 'Скрыть все назначения'
+
   const renderProduct = ({ item }: { item: Product }) => (
     <Pressable 
       style={styles.productCard}
@@ -107,13 +180,15 @@ export default function CatalogScreen() {
         <Image 
           source={require('../assets/умывальник.png')} 
           style={styles.productImage} 
-          resizeMode="contain"
+          resizeMode="cover"
         />
       </View>
       <View style={styles.productInfo}>
-        <Text style={styles.category}>{item.category}</Text>
-        <Text style={styles.productName}>{item.name}</Text>
-        <Text style={styles.price}>{item.price.toLocaleString('ru-RU')} ₽</Text>
+        <View>
+          <Text style={styles.category}>{item.category}</Text>
+          <Text style={styles.productName}>{item.name}</Text>
+          <Text style={styles.price}>{item.price.toLocaleString('ru-RU')} ₽</Text>
+        </View>
         <View style={styles.stockRow}>
           <Text style={styles.stock}>осталось {item.stock} шт.</Text>
           <View style={styles.addButton}>
@@ -188,16 +263,16 @@ export default function CatalogScreen() {
           <Pressable 
             style={[
               styles.filterButton,
-              filterButtonActive && styles.activeFilterButton
+              (hasActiveFilters() || filterModalVisible) && styles.activeFilterButton
             ]}
             onPress={() => {
-              setFilterButtonActive(!filterButtonActive);
-              // Здесь будет логика для фильтров
+              setSelectedFilters(appliedFilters);
+              setFilterModalVisible(true);
             }}
           >
             <Text style={[
               styles.filterButtonText,
-              filterButtonActive && styles.activeFilterButtonText
+              (hasActiveFilters() || filterModalVisible) && styles.activeFilterButtonText
             ]}>Фильтры</Text>
           </Pressable>
         </View>
@@ -240,8 +315,11 @@ export default function CatalogScreen() {
         visible={sortModalVisible}
         onRequestClose={() => setSortModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <Pressable 
+          style={styles.modalOverlay}
+          onPress={() => setSortModalVisible(false)}
+        >
+          <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Сортировка по цене</Text>
               <Pressable 
@@ -257,9 +335,9 @@ export default function CatalogScreen() {
 
             <Pressable 
               style={styles.radioOption}
-              onPress={() => setSelectedSort('cheap')}
+              onPress={() => setSelectedSort(selectedSort === 'cheap' ? null : 'cheap')}
             >
-              <View style={styles.radioButton}>
+              <View style={[styles.radioButton, selectedSort === 'cheap' && styles.radioButtonActive]}>
                 {selectedSort === 'cheap' && <View style={styles.radioButtonInner} />}
               </View>
               <Text style={styles.radioText}>Сначала дешевые</Text>
@@ -267,9 +345,10 @@ export default function CatalogScreen() {
 
             <Pressable 
               style={styles.radioOption}
-              onPress={() => setSelectedSort('expensive')}
+              onPress={() => setSelectedSort(selectedSort === 'expensive' ? null : 'expensive')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <View style={styles.radioButton}>
+              <View style={[styles.radioButton, selectedSort === 'expensive' && styles.radioButtonActive]}>
                 {selectedSort === 'expensive' && <View style={styles.radioButtonInner} />}
               </View>
               <Text style={styles.radioText}>Сначала дорогие</Text>
@@ -278,6 +357,175 @@ export default function CatalogScreen() {
             <Pressable 
               style={styles.applyButton}
               onPress={handleApplySort}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Text style={styles.applyButtonText}>Применить</Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={filterModalVisible}
+        onRequestClose={() => setFilterModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.filterModalContent}>
+            <View style={styles.modalHeaderFilter}>
+              <Text style={styles.modalTitleFilter}>Фильтры</Text>
+              <Pressable 
+                style={styles.closeButtonFilter}
+                onPress={() => setFilterModalVisible(false)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+<Path d="M7.54594 7.54624L5.95495 5.95525L4.36396 4.36426L2.77297 2.77327L1.18198 1.18228M1.18198 7.54624L7.54594 1.18228" stroke="#10366A" strokeWidth="2" strokeLinecap="round"/>
+</Svg>
+              </Pressable>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={styles.filterScrollView}>
+              {/* Бренд */}
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>Бренд</Text>
+                {BRANDS.map((brand) => (
+                  <Pressable 
+                    key={brand}
+                    style={styles.checkboxOption}
+                    onPress={() => toggleFilter('brand', brand)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <View style={[styles.checkbox, selectedFilters.brand.includes(brand) && styles.checkboxActive]}>
+                      {selectedFilters.brand.includes(brand) && (
+                        <View style={styles.checkboxInner} />
+                      )}
+                    </View>
+                    <Text style={styles.checkboxText}>{brand}</Text>
+                  </Pressable>
+                ))}
+              </View>
+              {/* Назначение */}
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>Назначение</Text>
+                {(showAllPurposes ? PURPOSES : PURPOSES.slice(0, 4)).map((purpose, i) => (
+                  <Pressable 
+                    key={i}
+                    style={styles.checkboxOption}
+                    onPress={() => toggleFilter('purpose', purpose)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <View style={[styles.checkbox, selectedFilters.purpose.includes(purpose) && styles.checkboxActive]}>
+                      {selectedFilters.purpose.includes(purpose) && (
+                        <View style={styles.checkboxInner} />
+                      )}
+                    </View>
+                    <Text style={styles.checkboxText}>{purpose}</Text>
+                  </Pressable>
+                ))}
+                {PURPOSES.length > 4 && (
+                  <Pressable onPress={() => setShowAllPurposes(!showAllPurposes)}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+    {showAllPurposes ? (
+    <>
+      <Text style={styles.showMoreText}>Скрыть все назначения</Text>
+      <Svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+      style={{ transform: [{ translateY: 3 }]}}
+      >
+        <Path
+          d="M8 14L12 10L16 14"
+          stroke="#2AB2DB"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    </>
+    
+  ) : (
+    <>
+      <Text style={styles.showMoreText}>Посмотреть все назначения</Text>
+      <Svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+      style={{ transform: [{ translateY: 3 }]}} 
+      >
+        <Path
+          d="M16 10L12 14L8 10"
+          stroke="#2AB2DB"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    </>
+  )}
+  </View>
+                  </Pressable>
+                )}
+              </View>
+
+              {/* Цвет */}
+              <View style={styles.filterSection}>
+                <Text style={styles.filterSectionTitle}>Цвет</Text>
+                {(showAllColors ? COLORS : COLORS.slice(0, 4)).map((color, i) => (
+                  <Pressable 
+                    key={i}
+                    style={styles.checkboxOption}
+                    onPress={() => toggleFilter('color', color)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <View style={[styles.checkbox, selectedFilters.color.includes(color) && styles.checkboxActive]}>
+                      {selectedFilters.color.includes(color) && (
+                        <View style={styles.checkboxInner} />
+                      )}
+                    </View>
+                    <Text style={styles.checkboxText}>{color}</Text>
+                  </Pressable>
+                ))}
+                {COLORS.length > 4 && (
+                  <Pressable onPress={() => setShowAllColors(!showAllColors)}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+    {showAllColors ? (
+    <>
+      <Text style={styles.showMoreText}>Скрыть все цвета</Text>
+      <Svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+      style={{ transform: [{ translateY: 3 }]}} 
+      >
+        <Path
+          d="M8 14L12 10L16 14"
+          stroke="#2AB2DB"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    </>
+    
+  ) : (
+    <>
+      <Text style={styles.showMoreText}>Посмотреть все цвета</Text>
+      <Svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+      style={{ transform: [{ translateY: 3 }]}} 
+      >
+        <Path
+          d="M16 10L12 14L8 10"
+          stroke="#2AB2DB"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
+    </>
+  )}
+  </View>
+                  </Pressable>
+                )}
+              </View>
+            </ScrollView>
+
+            <Pressable 
+              style={styles.applyButton}
+              onPress={handleApplyFilters}
             >
               <Text style={styles.applyButtonText}>Применить</Text>
             </Pressable>
@@ -312,8 +560,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
   },
   productImage: {
-    width: '100%',
-    height: '100%',
+    width: '90%',
+    height: '90%',
   },
   header: {
     paddingTop: 65,
@@ -400,14 +648,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sortButton: {
-    backgroundColor: '#E2E9FE',
+    backgroundColor: '#10366A',
   },
   filterButtonText: {
     ...typography.text2,
     color: '#13356C',
   },
   sortButtonText: {
-    color: '#13356C',
+    color: '#FFFFFF',
   },
   activeFilterButton: {
     backgroundColor: '#10366A',
@@ -426,12 +674,15 @@ const styles = StyleSheet.create({
   },
   row: {
     justifyContent: 'space-between',
+    gap: 10,
   },
   productCard: {
     backgroundColor: '#E2EDFE',
     borderRadius: 15,
-    marginBottom: 15,
-    width: '48%',
+    marginBottom: 10,
+    flex: 1,
+    maxWidth: '48%',
+    // height: 263,
     overflow: 'hidden',
     padding: 8,
   },
@@ -441,34 +692,42 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 10,
-    marginBottom: 8,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
   },
   productImagePlaceholder: {
-    width: '80%',
-    height: '80%',
+    width: '100%',
+    height: '100%',
     backgroundColor: '#E2EDFE',
   },
   productInfo: {
+    flex: 1,
     paddingHorizontal: 4,
+    paddingTop: 4,
     paddingBottom: 4,
+    justifyContent: 'space-between',
   },
   category: {
-    ...typography.heading2,
     color: '#10366A',
-    marginBottom: 4,
+    marginBottom: 2,
+    marginTop: 4,
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: 600,
+    // lineHeight: 20,
   },
   productName: {
-    ...typography.text2,
     color: '#6B83A4',
-    marginBottom: 6,
+    marginBottom: 3,
+    fontSize: 12,
+    fontWeight: 600,
+    // lineHeight: 20,
+
   },
   price: {
     ...typography.price,
     color: '#2C2C2C',
-    marginBottom: 8,
+    marginBottom: 4,
+    fontSize: 14,
   },
   stockRow: {
     flexDirection: 'row',
@@ -476,25 +735,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   stock: {
-    fontSize: 11,
+    fontSize: 10,
+    fontWeight: 600,
     color: '#8C8C8C',
+    // lineHeight: 20,
   },
   addButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 19,
+    height: 19,
+    borderRadius: 12,
     backgroundColor: '#F97C00',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 1,
   },
   bottomNav: {
     position: 'absolute',
     bottom: 30,
-    left: 80,
-    right: 80,
+    left: 90,
+    right: 90,
     flexDirection: 'row',
-    gap: 25,
+    gap: 35,
     backgroundColor: '#10366A',
     borderRadius: 20,
     paddingVertical: 20,
@@ -522,20 +782,42 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 20,
     paddingBottom: 40,
+    width: '100%',
+    // position: 'absolute',
+    // bottom: 0,
+    // left: 0,
+    // right: 0,
+  },
+   modalHeaderFilter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 25,
   },
   modalTitle: {
-    fontSize: 20,
+    ...typography.heading1,
+    paddingHorizontal: 60,
     fontWeight: '600',
     color: '#1E3A5F',
   },
+  modalTitleFilter: {
+    ...typography.heading1,
+    paddingHorizontal: 125,
+    fontWeight: '600',
+    color: '#1E3A5F',
+  },
+  closeButtonFilter: {
+    paddingBottom: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   closeButton: {
-    padding: 8,
+    // padding: 8,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -547,25 +829,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 15,
+    paddingHorizontal: 10,
   },
   radioButton: {
-    width: 24,
-    height: 24,
+    width: 17,
+    height: 17,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: '#1E3A5F',
-    marginRight: 15,
+    marginRight: 25,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  radioButtonActive: {
+    borderColor: '#2AB2DB',
+  },
   radioButtonInner: {
-    width: 12,
-    height: 12,
+    width: 9,
+    height: 9,
     borderRadius: 6,
-    backgroundColor: '#1E3A5F',
+    backgroundColor: '#2AB2DB',
   },
   radioText: {
     fontSize: 16,
+    fontWeight: '600',
     color: '#1E3A5F',
   },
   applyButton: {
@@ -573,11 +860,69 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 30,
   },
   applyButtonText: {
-    fontSize: 16,
+    ...typography.heading1,
     fontWeight: '600',
     color: '#FFF',
+  },
+  filterModalContent: {
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    padding: 20,
+    paddingBottom: 40,
+    height: '92%',
+  },
+  filterScrollView: {
+    // maxHeight: 650,
+  },
+  filterSection: {
+    marginTop: 10,
+  },
+  filterSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#10366A',
+    marginBottom: 15,
+    marginHorizontal: 20,
+  },
+  checkboxOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 7,
+    marginHorizontal: 7,
+  },
+  checkbox: {
+    width: 17,
+    height: 17,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#1E3A5F',
+    marginRight: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxActive: {
+    borderColor: '#2AB2DB',
+  },
+  checkboxInner: {
+    width: 9,
+    height: 9,
+    borderRadius: 6,
+    backgroundColor: '#2AB2DB',
+  },
+  checkboxText: {
+    fontSize: 16,
+    color: '#10366A',
+  },
+  showMoreText: {
+    fontSize: 14,
+    color: '#2AB2DB',
+    fontWeight: 500,
+    lineHeight: 20,
+    marginTop: 5,
+    marginLeft: 20,
   },
 });

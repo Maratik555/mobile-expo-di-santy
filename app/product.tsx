@@ -35,7 +35,7 @@ export default function ProductScreen() {
           <Image 
             source={require('../assets/умывальник.png')} 
             style={styles.productImage} 
-            resizeMode="contain"
+            resizeMode="cover"
           />
           
           <Pressable 
@@ -97,7 +97,7 @@ export default function ProductScreen() {
             </View>
           )} */}
 
-          <View style={styles.collapsibleSection}>
+          <View>
             <Pressable 
               style={styles.collapsibleHeader}
               onPress={() => setIsDescriptionOpen(!isDescriptionOpen)}
@@ -118,7 +118,7 @@ export default function ProductScreen() {
             )}
           </View>
 
-          <View style={styles.collapsibleSection}>
+          <View>
             <Pressable 
               style={styles.collapsibleHeader}
               onPress={() => setIsCharacteristicsOpen(!isCharacteristicsOpen)}
@@ -161,7 +161,7 @@ export default function ProductScreen() {
               style={styles.toastButton}
               onPress={() => {
                 setShowToast(false);
-                router.push('/catalog');
+                router.push('/catalog'); // пока на каталог, потом на корзину
               }}
             >
               <Text style={styles.toastButtonText}>Перейти</Text>
@@ -179,20 +179,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
   },
   productImage: {
-    width: '100%',
-    height: '100%',
-    marginTop: 60,
+    width: '85%',
+    height: '85%',
+    marginTop: 80,
   },
   imageContainer: {
-    height: 350,
+    height: 450,
     backgroundColor: '#FFF',
     position: 'relative',
     justifyContent: 'center',
     alignItems: 'center',
   },
   imagePlaceholder: {
-    width: '70%',
-    height: '70%',
+    width: '100%',
+    height: '100%',
     backgroundColor: '#FFF',
   },
   closeButton: {
@@ -213,17 +213,21 @@ const styles = StyleSheet.create({
   contentContainer: {
     backgroundColor: '#E2EDFE',
     paddingHorizontal: 20,
-    paddingTop: 20,
-    borderRadius: 15,
-    paddingBottom: 140,
+    paddingTop: 15,
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    paddingBottom: 200,
   },
   infoSection: {
     marginBottom: 15,
   },
   category: {
-    ...typography.heading3,
+    // ...typography.heading3,
     color: '#6B83A4',
     marginBottom: 8,
+    fontWeight: 500,
+    lineHeight: 20,
+    fontSize: 18,
   },
   row: {
     flexDirection: 'row',
@@ -231,24 +235,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   productName: {
-    ...typography.text2,
+    // ...typography.text2,
     color: '#10366A',
     lineHeight: 20,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: 600,
   },
   price: {
     ...typography.price,
     color: '#404040',
+    lineHeight: 20,
+    fontSize: 18,
+    fontWeight: 700,
   },
   colorSection: {
-    marginBottom: 20,
-    paddingBottom: 15,
+    marginBottom: 10,
+    // paddingBottom: 15,
   },
   colorRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 5,
   },
   colorLabel: {
     fontSize: 14,
@@ -263,11 +269,13 @@ const styles = StyleSheet.create({
   stock: {
     fontSize: 12,
     color: '#8C8C8C',
+    lineHeight: 20,
+    fontWeight: 600,
   },
-  colorOptions: {
-    marginTop: 10,
-    gap: 8,
-  },
+  // colorOptions: {
+  //   marginTop: 10,
+  //   gap: 8,
+  // },
   // colorOption: {
   //   backgroundColor: '#FFFFFF',
   //   borderRadius: 8,
@@ -288,31 +296,38 @@ const styles = StyleSheet.create({
   //   color: '#10366A',
   //   fontWeight: 'bold',
   // },
-  collapsibleSection: {
-    marginBottom: 20,
-    // borderBottomWidth: 1,
-    // borderBottomColor: '#CBD5E1',
-    paddingBottom: 15,
-  },
+  // collapsibleSection: {
+  //   marginBottom: 20,
+  //   borderBottomWidth: 1,
+  //   borderBottomColor: '#CBD5E1',
+  //   paddingBottom: 15,
+  // },
   collapsibleHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 5,
+    paddingVertical: 10,
   },
   collapsibleTitle: {
-    ...typography.heading3,
+    // ...typography.heading3,
     color: '#10366A',
+    lineHeight: 20,
+    fontSize: 14,
+    fontWeight: 600,
   },
   chevron: {
-    ...typography.text2,
+    // ...typography.text2,
     color: '#10366A',
+    lineHeight: 20,
+    fontSize: 14,
+    fontWeight: 600,
   },
   description: {
-    ...typography.text2,
+    // ...typography.text2,
     color: '#4B5563',
-    lineHeight: 20,
-    marginTop: 10,
+    fontSize: 12,
+    fontWeight: 400,
+    letterSpacing: -0.5,
   },
   footer: {
     position: 'absolute',
@@ -321,7 +336,6 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: '#E2EDFE',
     paddingHorizontal: 20,
-    paddingTop: 12,
     paddingBottom: 40,
   },
   addToCartButton: {
