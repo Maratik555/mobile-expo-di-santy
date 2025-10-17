@@ -168,8 +168,6 @@ export default function CatalogScreen() {
            appliedFilters.color.length > 0;
   };
 
-  const a = 'Посмотреть все назначения'
-  const b = 'Скрыть все назначения'
 
   const renderProduct = ({ item }: { item: Product }) => (
     <Pressable 
